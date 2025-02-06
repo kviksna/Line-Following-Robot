@@ -1,90 +1,56 @@
-
 <!DOCTYPE html>
-<html lang="en-US">
-  <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Line-Following-Robot | Line following robot simulation</title>
-<meta name="generator" content="Jekyll v3.10.0" />
-<meta property="og:title" content="Line-Following-Robot" />
-<meta property="og:locale" content="en_US" />
-<meta name="description" content="Line following robot simulation" />
-<meta property="og:description" content="Line following robot simulation" />
-<link rel="canonical" href="https://kviksna.github.io/Line-Following-Robot/" />
-<meta property="og:url" content="https://kviksna.github.io/Line-Following-Robot/" />
-<meta property="og:site_name" content="Line-Following-Robot" />
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Line-Following-Robot" />
-<style>
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #0d1117;
-        color: #c9d1d9;
-    }
-    a {
-        color: #58a6ff;
-    }
-}
-</style>
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","description":"Line following robot simulation","headline":"Line-Following-Robot","name":"Line-Following-Robot","url":"https://kviksna.github.io/Line-Following-Robot/"}</script>
-<!-- End Jekyll SEO tag -->
-
-    <link rel="stylesheet" href="/Line-Following-Robot/assets/css/style.css?v=1e7a583d8d6436197f3318efeaf022bdc72cf3ec">
-    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
-
-<!-- Setup Google Analytics -->
-
-
-
-<!-- You can set your favicon here -->
-<!-- link rel="shortcut icon" type="image/x-icon" href="/Line-Following-Robot/favicon.ico" -->
-
-<!-- end custom head snippets -->
-
-  </head>
-  <body>
-    <div class="container-lg px-3 my-5 markdown-body">
-
-<h1 id="line-following-robot">Line-Following-Robot</h1>
-<p>Line following robot simulation</p>
-
-<p>This repository contains different versions of the LFR project. Below are links to the HTML files along with their corresponding images.</p>
-
-<h2 id="available-versions-to-play-with">Available Versions (to play with)</h2>
-
-<h3 id="lfr-v1"><a href="/Line-Following-Robot/lfr_v1.html">LFR v1</a></h3>
-
-<h3 id="lfr-v2"><a href="/Line-Following-Robot/lfr_v2.html">LFR v2</a></h3>
-
-<h3 id="lfr-v3"><a href="/Line-Following-Robot/lfr_v3.html">LFR v3</a></h3>
-<p><img src="/Line-Following-Robot/lfr_v3.jpg" alt="LFR v3" /></p>
-
-<h3 id="lfr-v4"><a href="/Line-Following-Robot/lfr_v4.html">LFR v4</a></h3>
-
-<h3 id="lfr-v5"><a href="/Line-Following-Robot/lfr_v5.html">LFR v5</a></h3>
-
-<h3 id="lfr-v6"><a href="/Line-Following-Robot/lfr_v6.html">LFR v6</a></h3>
-<p><img src="/Line-Following-Robot/lfr_v6.jpg" alt="LFR v6" /></p>
-
-<h3 id="lfr-v7"><a href="/Line-Following-Robot/lfr_v7.html">LFR v7</a></h3>
-<p><img src="/Line-Following-Robot/lfr_v7.jpg" alt="LFR v7" /></p>
-
-<h3 id="lfr-v8"><a href="/Line-Following-Robot/lfr_v8.html">LFR v8</a></h3>
-<p><img src="/Line-Following-Robot/lfr_v8.jpg" alt="LFR v8" /></p>
-
-<h3 id="lfr-v9-best-final-refresh-to-regenerate-track-go-for-track-without-too-sharp-corners"><a href="/Line-Following-Robot/lfr_v9.html">LFR v9</a> (best! Final! Refresh to regenerate track, go for track without too sharp corners)</h3>
-<p><img src="/Line-Following-Robot/lfr_v9.jpg" alt="LFR v9" />
-<img src="/Line-Following-Robot/lfr_v9_2.jpg" alt="LFR v9 Additional" /></p>
-
-
-      
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line-Following-Robot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            text-align: center;
+        }
+        .navbar {
+            display: flex;
+            justify-content: center;
+            background-color: #161b22;
+            padding: 10px;
+        }
+        .navbar a {
+            color: #58a6ff;
+            text-decoration: none;
+            padding: 10px 15px;
+        }
+        .navbar a:hover {
+            background-color: #21262d;
+        }
+        iframe {
+            width: 90%;
+            height: 800px;
+            border: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Line-Following-Robot</h1>
+    <div class="navbar">
+        <a href="#" onclick="loadPage('lfr_v1.html')">LFR v1</a>
+        <a href="#" onclick="loadPage('lfr_v2.html')">LFR v2</a>
+        <a href="#" onclick="loadPage('lfr_v3.html')">LFR v3</a>
+        <a href="#" onclick="loadPage('lfr_v4.html')">LFR v4</a>
+        <a href="#" onclick="loadPage('lfr_v5.html')">LFR v5</a>
+        <a href="#" onclick="loadPage('lfr_v6.html')">LFR v6</a>
+        <a href="#" onclick="loadPage('lfr_v7.html')">LFR v7</a>
+        <a href="#" onclick="loadPage('lfr_v8.html')">LFR v8</a>
+        <a href="#" onclick="loadPage('lfr_v9.html')">LFR v9</a>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
-    <script>anchors.add();</script>
-  </body>
+    <iframe id="contentFrame" src=""></iframe>
+    <script>
+        function loadPage(page) {
+            document.getElementById('contentFrame').src = page;
+        }
+    </script>
+</body>
 </html>
