@@ -1,3 +1,15 @@
+```css
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #0d1117;
+        color: #c9d1d9;
+    }
+    a {
+        color: #58a6ff;
+    }
+}
+```
+
 # Line-Following-Robot
 Line following robot simulation
 
@@ -25,6 +37,6 @@ This repository contains different versions of the LFR project. Below are links 
 ### [LFR v8](lfr_v8.html)
 ![LFR v8](lfr_v8.jpg)
 
-### [LFR v9](lfr_v9.html) (best! Final! )
+### [LFR v9](lfr_v9.html) (best! Final! Refresh to regenerate track, go for track without too sharp corners)
 ![LFR v9](lfr_v9.jpg)
 ![LFR v9 Additional](lfr_v9_2.jpg)
