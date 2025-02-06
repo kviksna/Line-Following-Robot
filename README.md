@@ -3,7 +3,7 @@ Line following robot simulation
 
 This repository contains different versions of the LFR project. Below are links to the HTML files along with their corresponding images.
 
-## Available Versions
+## Available Versions (to play with)
 
 ### [LFR v1](lfr_v1.html)
 
@@ -25,6 +25,6 @@ This repository contains different versions of the LFR project. Below are links 
 ### [LFR v8](lfr_v8.html)
 ![LFR v8](lfr_v8.jpg)
 
-### [LFR v9](lfr_v9.html)
+### [LFR v9](lfr_v9.html) (best! Final! )
 ![LFR v9](lfr_v9.jpg)
 ![LFR v9 Additional](lfr_v9_2.jpg)
