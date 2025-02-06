@@ -1,15 +1,3 @@
-```css
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #0d1117;
-        color: #c9d1d9;
-    }
-    a {
-        color: #58a6ff;
-    }
-}
-```
-
 # Line-Following-Robot
 Line following robot simulation
 
