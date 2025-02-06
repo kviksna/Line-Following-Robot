@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>2D Line Following Robot Simulation</title>
+  <style>
+    body { margin: 0; background: #121212; color: #eee; font-family: sans-serif; }
+    canvas { display: block; background: #121212; }
+    #statusBox { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px; z-index: 100; }
+    #controls button { background: #333; color: #eee; border: none; padding: 5px 10px; margin: 0 5px; cursor: pointer; }
+    #controls button:hover { background: #555; }
+  </style>
+</head>
+<body>
+<div id="statusBox">
+  <div id="statusTable"></div>
+  <div id="controls">
+    <button id="speedDecrease">Speed -</button>
+    <span id="manualSpeedDisplay">1.50</span>
+    <button id="speedIncrease">Speed +</button>
+  </div>
+</div>
+<canvas id="simCanvas"></canvas>
+<script>
+const canvas = document.getElementById("simCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const statusTable = document.getElementById("statusTable");
+
+// Offscreen canvas for track sensor lookup
+const trackCanvas = document.createElement("canvas");
+trackCanvas.width = canvas.width;
+trackCanvas.height = canvas.height;
+const tctx = trackCanvas.getContext("2d");
+
+let trackPoints = [];
+function generateTrack() {
+  tctx.fillStyle = "#000";
+  tctx.fillRect(0, 0, trackCanvas.width, trackCanvas.height);
+  const cx = canvas.width/2, cy = canvas.height/2;
+  const numPoints = 50;
+  const baseR = Math.min(canvas.width, canvas.height) / 3;
+  const amplitude = baseR * 2;
+  let radii = [];
+  for (let i = 0; i < numPoints; i++) {
+    // Raw radii: random perturbation in [-amplitude/2, amplitude/2]
+    radii.push(baseR + (Math.random()-0.5)*amplitude);
+  }
+  // Light smoothing with a 3-point moving average.
+  let smoothRadii = [];
+  for (let i = 0; i < numPoints; i++) {
+    let sum = radii[(i-1+numPoints)%numPoints] + radii[i] + radii[(i+1)%numPoints];
+    smoothRadii.push(sum / 3);
+  }
+  // Generate trackPoints (and store polar coords for later adjustment).
+  let pts = [];
+  tctx.strokeStyle = "#fff";
+  tctx.lineWidth = 40/6;
+  tctx.beginPath();
+  for (let i = 0; i < numPoints; i++) {
+    let theta = i * 2 * Math.PI / numPoints;
+    let r = smoothRadii[i];
+    let x = cx + r * Math.cos(theta);
+    let y = cy + r * Math.sin(theta);
+    pts.push({ x, y, r, theta });
+    if (i === 0) tctx.moveTo(x, y);
+    else tctx.lineTo(x, y);
+  }
+  tctx.closePath();
+  // Adjust sharp corners: if interior angle < 90°, reposition the vertex.
+  for (let i = 0; i < numPoints; i++) {
+    let prev = pts[(i-1+numPoints)%numPoints];
+    let curr = pts[i];
+    let next = pts[(i+1)%numPoints];
+    let v1 = { x: prev.x - curr.x, y: prev.y - curr.y };
+    let v2 = { x: next.x - curr.x, y: next.y - curr.y };
+    let mag1 = Math.hypot(v1.x, v1.y), mag2 = Math.hypot(v2.x, v2.y);
+    let dot = v1.x*v2.x + v1.y*v2.y;
+    let angle = Math.acos(dot / (mag1 * mag2));
+    if (angle < Math.PI/2) { // interior angle less than 90° → too sharp
+      // Compute average of neighbors, then project it onto the original radial ray.
+      let avg = { x: (prev.x + next.x)/2, y: (prev.y + next.y)/2 };
+      let dx = avg.x - cx, dy = avg.y - cy;
+      let newR = Math.hypot(dx, dy);
+      // Preserve the original polar angle of the vertex.
+      curr.x = cx + newR * Math.cos(curr.theta);
+      curr.y = cy + newR * Math.sin(curr.theta);
+      pts[i] = curr;
+    }
+  }
+  // Redraw the track with adjusted points.
+  tctx.beginPath();
+  for (let i = 0; i < numPoints; i++) {
+    let pt = pts[i];
+    if (i === 0) tctx.moveTo(pt.x, pt.y);
+    else tctx.lineTo(pt.x, pt.y);
+  }
+  tctx.closePath();
+  tctx.stroke();
+  return pts;
+}
+trackPoints = generateTrack();
+
+// Place robot at the first track point with heading along the tangent.
+const robot = {
+  x: trackPoints[0].x,
+  y: trackPoints[0].y,
+  angle: Math.atan2(trackPoints[1].y - trackPoints[0].y, trackPoints[1].x - trackPoints[0].x),
+  length: 30,
+  width: 20,
+  leftSpeed: 0,
+  rightSpeed: 0,
+  currentSpeed: 1.5  // For gradual acceleration.
+};
+robot.sensorOffsets = [
+  { dx: robot.length/2, dy: -robot.width/4 },  // left sensor
+  { dx: robot.length/2, dy: 0 },                 // middle sensor
+  { dx: robot.length/2, dy: robot.width/4 }      // right sensor
+];
+
+let manualSpeed = 1.5;
+document.getElementById("manualSpeedDisplay").textContent = manualSpeed.toFixed(2);
+document.getElementById("speedIncrease").addEventListener("click", () => {
+  manualSpeed += 0.1;
+  document.getElementById("manualSpeedDisplay").textContent = manualSpeed.toFixed(2);
+});
+document.getElementById("speedDecrease").addEventListener("click", () => {
+  manualSpeed = Math.max(0, manualSpeed - 0.1);
+  document.getElementById("manualSpeedDisplay").textContent = manualSpeed.toFixed(2);
+});
+
+// Last seen side of the line (-1 for left, 0 for center, 1 for right)
+let lastLineSide = 0;
+function localToWorld(r, offset) {
+  return { 
+    x: r.x + offset.dx * Math.cos(r.angle) - offset.dy * Math.sin(r.angle),
+    y: r.y + offset.dx * Math.sin(r.angle) + offset.dy * Math.cos(r.angle)
+  };
+}
+function readSensor(pos) {
+  const pixel = tctx.getImageData(Math.floor(pos.x), Math.floor(pos.y), 1, 1).data;
+  return ((pixel[0] + pixel[1] + pixel[2]) / 3) > 128 ? 1 : 0;
+}
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x+radius, y);
+  ctx.lineTo(x+width-radius, y);
+  ctx.quadraticCurveTo(x+width, y, x+width, y+radius);
+  ctx.lineTo(x+width, y+height-radius);
+  ctx.quadraticCurveTo(x+width, y+height, x+width-radius, y+height);
+  ctx.lineTo(x+radius, y+height);
+  ctx.quadraticCurveTo(x, y+height, x, y+height-radius);
+  ctx.lineTo(x, y+radius);
+  ctx.quadraticCurveTo(x, y, x+radius, y);
+  ctx.closePath();
+  ctx.stroke();
+}
+function normalizeAngle(a) {
+  while(a < 0) a += 2*Math.PI;
+  while(a >= 2*Math.PI) a -= 2*Math.PI;
+  return a;
+}
+function update() {
+  const sensorReadings = robot.sensorOffsets.map(off => {
+    const pos = localToWorld(robot, off);
+    return { pos, val: readSensor(pos) };
+  });
+  const sensorDetected = sensorReadings.some(s => s.val === 1);
+  const kP = 0.5;
+  let diff = 0, targetSpeed = manualSpeed;
+  if(sensorDetected) {
+    if(sensorReadings[1].val === 1 && sensorReadings[0].val === 0 && sensorReadings[2].val === 0) {
+      targetSpeed = manualSpeed + 0.3;
+    }
+    diff = kP * (sensorReadings[2].val - sensorReadings[0].val);
+    if(sensorReadings[0].val === 1) lastLineSide = -1;
+    else if(sensorReadings[2].val === 1) lastLineSide = 1;
+    else if(sensorReadings[1].val === 1) lastLineSide = 0;
+  } else {
+    targetSpeed = 0.5;
+    diff = 0.8 * lastLineSide;
+  }
+  // Gradually adjust currentSpeed toward targetSpeed.
+  const acceleration = 0.05;
+  robot.currentSpeed += acceleration * (targetSpeed - robot.currentSpeed);
+  
+  // Boundary avoidance via a full-page rounded box.
+  const margin = 50;
+  let bc = 0;
+  if(robot.x < margin || robot.x > canvas.width-margin || robot.y < margin || robot.y > canvas.height-margin) {
+    const cx = canvas.width/2, cy = canvas.height/2;
+    const desiredAngle = Math.atan2(cy - robot.y, cx - robot.x);
+    let angleDiff = desiredAngle - robot.angle;
+    while(angleDiff > Math.PI) angleDiff -= 2*Math.PI;
+    while(angleDiff < -Math.PI) angleDiff += 2*Math.PI;
+    bc = 0.05 * angleDiff;
+  }
+  diff += bc;
+  const dt = 1;
+  robot.leftSpeed = robot.currentSpeed - diff;
+  robot.rightSpeed = robot.currentSpeed + diff;
+  const vAvg = (robot.leftSpeed + robot.rightSpeed) / 2;
+  const angVel = (robot.rightSpeed - robot.leftSpeed) / robot.width;
+  robot.x += vAvg * Math.cos(robot.angle) * dt;
+  robot.y += vAvg * Math.sin(robot.angle) * dt;
+  robot.angle += angVel * dt;
+  robot.angle = normalizeAngle(robot.angle);
+  
+  statusTable.innerHTML = `<table style="color:#eee;">
+    <tr><td>Speed:</td><td>${vAvg.toFixed(2)}</td></tr>
+    <!--<tr><td>Current:</td><td>${robot.currentSpeed.toFixed(2)}</td></tr>-->
+    <tr><td>Azimuth:</td><td>${(robot.angle*180/Math.PI).toFixed(2)}°</td></tr>
+    <tr><td>Manual Base:</td><td>${manualSpeed.toFixed(2)}</td></tr>
+  </table>`;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(trackCanvas, 0, 0);
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#777";
+  drawRoundedRect(ctx, 10, 10, canvas.width-20, canvas.height-20, 20);
+  
+  ctx.save();
+  ctx.translate(robot.x, robot.y);
+  ctx.rotate(robot.angle);
+  ctx.fillStyle = "#ff5722";
+  ctx.fillRect(-robot.length/2, -robot.width/2, robot.length, robot.width);
+  robot.sensorOffsets.forEach((off, i) => {
+    const sPos = { x: off.dx, y: off.dy };
+    ctx.beginPath();
+    ctx.arc(sPos.x, sPos.y, 3, 0, 2*Math.PI);
+    let sensorVal = readSensor(localToWorld(robot, off));
+    let sensorColor = "#f44336";
+    if(i === 1) sensorColor = sensorVal ? "#00e676" : "#f44336";
+    else sensorColor = sensorVal ? "#ffff00" : "#f44336";
+    ctx.fillStyle = sensorColor;
+    ctx.fill();
+  });
+  ctx.restore();
+  requestAnimationFrame(update);
+}
+update();
+</script>
+</body>
+</html>
